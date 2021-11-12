@@ -1,12 +1,14 @@
 package replacer
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/secretsmanager"
 	"regexp"
+	"strings"
 )
 
 type replacer func(string) string
@@ -43,9 +45,16 @@ func newAwsReplacer(errCallback func(string, error)) (replacer, error) {
 	svc := secretsmanager.New(newSession)
 
 	return func(secret string) string {
+		secretId := secret
+		key := ""
+		if strings.Contains(secret, "|") {
+			splits := strings.Split(secret, "|")
+			secretId = splits[0]
+			key = splits[1]
+		}
 
 		input := &secretsmanager.GetSecretValueInput{
-			SecretId: aws.String(secret),
+			SecretId: aws.String(secretId),
 		}
 
 		result, err := svc.GetSecretValue(input)
@@ -53,7 +62,17 @@ func newAwsReplacer(errCallback func(string, error)) (replacer, error) {
 			errCallback(secret, err)
 			return err.Error()
 		}
-		return result.GoString()
+
+		if key != "" {
+			var values map[string]string
+			err := json.Unmarshal([]byte(*result.SecretString), &values)
+			if err != nil {
+				errCallback(secret, err)
+				return err.Error()
+			}
+			return values[key]
+		}
+		return *result.SecretString
 	}, nil
 
 }
