@@ -31,7 +31,8 @@ func main() {
 	} else {
 		patterns, err := ioutil.ReadFile(*c)
 		if err != nil {
-			log.Fatalf("error reading file %s: %v\n", *c, err)
+			log.Printf("error reading file %s: %v\n", *c, err)
+			return
 		}
 		for _, v := range strings.Split(string(patterns), "\n") {
 			newP := strings.TrimSpace(v)
