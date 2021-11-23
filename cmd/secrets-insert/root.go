@@ -37,6 +37,7 @@ func main() {
 			newP := strings.TrimSpace(v)
 
 			if strings.HasPrefix(newP, "PATTERN=") {
+				log.Print("set new pattern to ", newP[8:])
 				err = replacer.SetPattern(newP[8:])
 				if err != nil {
 					log.Fatalf("could not parse pattern %s: %v\n", newP[8:], err)
@@ -49,6 +50,7 @@ func main() {
 			}
 
 			for _, file := range glob {
+				log.Print("replacing file: ", file)
 				Replace(file, true, true)
 			}
 		}
