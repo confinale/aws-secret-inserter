@@ -15,6 +15,15 @@ type replacer func(string) string
 
 var pattern = regexp.MustCompile("::SECRET:([^:]+):SECRET::")
 
+func SetPattern(newPattern string) error {
+	p, err := regexp.Compile(newPattern)
+	if err != nil {
+		return err
+	}
+	pattern = p
+	return nil
+}
+
 func ReplaceAll(str string) (string, error) {
 	errs := map[string]error{}
 	r, err := newAwsReplacer(func(replacement string, err error) {
