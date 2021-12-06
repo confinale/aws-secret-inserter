@@ -11,6 +11,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/secretsmanager"
+	"github.com/drone/envsubst"
 	"golang.org/x/crypto/bcrypt"
 	"regexp"
 	"strings"
@@ -48,7 +49,12 @@ func ReplaceAll(str string) (string, error) {
 
 func replaceSecrets(str string, r replacer) string {
 	return pattern.ReplaceAllStringFunc(str, func(s string) string {
-		return r(s[9 : len(s)-9])
+		pattern := s[9 : len(s)-9]
+		patternSubst, err := envsubst.EvalEnv(pattern)
+		if err == nil {
+			pattern = patternSubst
+		}
+		return r(pattern)
 	})
 }
 func newAwsReplacer(errCallback func(string, error)) (replacer, error) {
