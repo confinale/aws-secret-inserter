@@ -65,8 +65,12 @@ func Replace(file string, fail bool, inline bool) {
 	}
 
 	res, err := replacer.ReplaceAll(string(input))
-	if err != nil && fail {
-		log.Fatalf("error replacing secrets: %v\n", err)
+	if err != nil {
+		if fail {
+			log.Fatalf("error replacing secrets: %v\n", err)
+		} else {
+			log.Errorf("error replacing secrets: %v\n", err)
+		}
 	}
 
 	if inline {
