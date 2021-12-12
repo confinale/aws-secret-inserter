@@ -52,7 +52,7 @@ func main() {
 
 			for _, file := range glob {
 				log.Print("replacing file: ", file)
-				Replace(file, true, true)
+				Replace(file, *fail, true)
 			}
 		}
 	}
