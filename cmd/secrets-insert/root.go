@@ -69,7 +69,7 @@ func Replace(file string, fail bool, inline bool) {
 		if fail {
 			log.Fatalf("error replacing secrets: %v\n", err)
 		} else {
-			log.Errorf("error replacing secrets: %v\n", err)
+			log.Printf("error replacing secrets: %v\n", err)
 		}
 	}
 
