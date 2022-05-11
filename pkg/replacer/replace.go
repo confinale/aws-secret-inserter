@@ -132,6 +132,11 @@ func encodeValue(value string, encode string) (string, error) {
 		val := s.Sum(nil)
 		return base64.StdEncoding.EncodeToString(val), nil
 	}
+	if e == "binary" {
+		val := make([]byte, 0)
+		_, err := base64.StdEncoding.Decode([]byte(value), val)
+		return string(val), err
+	}
 	return value, nil
 }
 
