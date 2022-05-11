@@ -64,6 +64,30 @@ func Replace(file string, fail bool, inline bool) {
 		log.Fatalf("error reading file %s: %v\n", file, err)
 	}
 
+	secret, replace := replacer.ReplaceFullFile(string(input))
+	if replace {
+		if !inline {
+			log.Fatalln("only inline replacement is supported with binary flag")
+		}
+
+		stat, err := os.Stat(file)
+		if err != nil {
+			log.Fatalln(err)
+		}
+		binarySecret, err := replacer.BinarySecret(secret)
+
+		if err != nil {
+			if fail {
+				log.Fatalf("error replacing secrets: %v\n", err)
+			} else {
+				log.Printf("error replacing secrets: %v\n", err)
+			}
+			return
+		}
+		err = os.WriteFile(file, binarySecret, stat.Mode())
+		return
+	}
+
 	res, err := replacer.ReplaceAll(string(input))
 	if err != nil {
 		if fail {

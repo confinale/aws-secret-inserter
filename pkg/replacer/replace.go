@@ -17,9 +17,13 @@ import (
 	"strings"
 )
 
+var ErrFullFile = errors.New("full file has to be replaced")
+
 type replacer func(string) string
 
 var pattern = regexp.MustCompile("::SECRET:([^:]+):SECRET::")
+
+var binaryPattern = regexp.MustCompile("::SECRET:([^:]+)\\|\\|binary:SECRET::")
 
 func SetPattern(newPattern string) error {
 	p, err := regexp.Compile(newPattern)
@@ -28,6 +32,28 @@ func SetPattern(newPattern string) error {
 	}
 	pattern = p
 	return nil
+}
+func BinarySecret(str string) ([]byte, error) {
+	newSession, err := session.NewSession()
+	if err != nil {
+		return nil, err
+	}
+	svc := secretsmanager.New(newSession)
+
+	input := &secretsmanager.GetSecretValueInput{
+		SecretId: aws.String(str),
+	}
+
+	result, err := svc.GetSecretValue(input)
+	return result.SecretBinary, err
+}
+
+func ReplaceFullFile(str string) (string, bool) {
+	if binaryPattern.MatchString(str) {
+		find := binaryPattern.FindAllStringSubmatch(str, -1)
+		return find[0][1], true
+	}
+	return "", false
 }
 
 func ReplaceAll(str string) (string, error) {
@@ -133,9 +159,7 @@ func encodeValue(value string, encode string) (string, error) {
 		return base64.StdEncoding.EncodeToString(val), nil
 	}
 	if e == "binary" {
-		val := make([]byte, 0)
-		_, err := base64.StdEncoding.Decode([]byte(value), val)
-		return string(val), err
+		return "", ErrFullFile
 	}
 	return value, nil
 }

@@ -66,3 +66,37 @@ func Test_replaceSecrets(t *testing.T) {
 		})
 	}
 }
+
+func TestReplaceFullFile(t *testing.T) {
+	type args struct {
+		str string
+	}
+	tests := []struct {
+		name  string
+		args  args
+		want  string
+		want1 bool
+	}{{
+		"no match",
+		args{str: "::SECRET:asdaf:SECRET::\n"},
+		"",
+		false,
+	}, {
+		"match binary",
+		args{str: "::SECRET:asdaf||binary:SECRET::\n"},
+		"asdaf",
+		true,
+	},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, got1 := ReplaceFullFile(tt.args.str)
+			if got != tt.want {
+				t.Errorf("ReplaceFullFile() got = %v, want %v", got, tt.want)
+			}
+			if got1 != tt.want1 {
+				t.Errorf("ReplaceFullFile() got1 = %v, want %v", got1, tt.want1)
+			}
+		})
+	}
+}
